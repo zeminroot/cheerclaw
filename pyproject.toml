@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cheerclaw"
+version = "0.1.0"
+description = "CheerClaw - 灵活的 AI Agent 框架，支持多通道交互"
+requires-python = ">=3.8"
+dependencies = [
+    "pydantic>=2.0.0",
+    "openai>=1.0.0",
+    "httpx>=0.25.0",
+    "aiohttp>=3.8.0",
+    "aiocron>=1.8",
+    "croniter>=1.4",
+    "loguru>=0.7.0",
+    "prompt-toolkit>=3.0.0",
+    "rich>=13.0.0",
+    "tiktoken>=0.5.0",
+    "websockets>=11.0",
+    "tavily-python>=0.3.0",
+    "qq-botpy",
+]
+
+[project.scripts]
+cheerclaw = "cheerclaw.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cheerclaw*"]
+
+[tool.setuptools.package-data]
+cheerclaw = [
+    "skills/**/*",
+    "context/prompts/*",
+]
