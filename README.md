@@ -15,7 +15,9 @@
 ## 安装
 
 ```bash
-pip install cheerclaw
+pip3 install --upgrade pip
+
+pip3 install cheerclaw
 ```
 
 ## 使用方法

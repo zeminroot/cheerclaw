@@ -7,11 +7,10 @@
 '''
 
 import json
-import os
 import threading
 from pathlib import Path
-from typing import Dict, List, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, Optional
+from dataclasses import dataclass
 
 from loguru import logger
 
@@ -27,7 +26,7 @@ class ChannelInfo:
 class ChannelInfoManager:
 
     def __init__(self, clawspace: Optional[Path] = None):
-        """
+        """初始化 ChannelInfoManager
         clawspace: CheerClaw 主目录，默认为 ~/.cheerclaw
         """
         if clawspace is None:
@@ -38,7 +37,7 @@ class ChannelInfoManager:
 
         self.info_file = self.clawspace / "channel_info.json"
         self._channels: Dict[str, ChannelInfo] = {}
-        self._lock = threading.Lock()  # 保护并发写入
+        self._lock = threading.Lock()
 
         self._load()
 
@@ -95,10 +94,29 @@ class ChannelInfoManager:
             self._save()
             return True
 
-    def unregister_channel(self, channel_id: str) -> bool:
-        """注销 Channel
+    def is_valid_channel(self, channel_id: str) -> bool:
+        """验证 channel_id 是否有效
         channel_id: Channel 唯一标识
-        返回: 是否成功注销
+        返回: 是否存在该 channel
+        """
+        return channel_id in self._channels
+
+    def build_summary(self) -> str:
+        """构建 Channel 信息摘要
+        返回: 格式化的 channel 信息文本
+        """
+        if not self._channels:
+            return "暂无已连接的 Channel"
+
+        lines = ["已连接的 Channels:"]
+        for info in self._channels.values():
+            lines.append(f"  - {info.channel_id} ({info.channel_source}): {info.channel_describe}")
+
+        return "\n".join(lines)
+
+    def build_json_summary(self) -> str:
+        """构建 JSON 格式的 Channel 信息
+        返回: JSON 字符串
         """
         data = [
             {
