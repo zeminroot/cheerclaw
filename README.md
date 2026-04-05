@@ -15,6 +15,9 @@
 ## 安装
 
 ```bash
+
+python3.12环境
+
 pip3 install --upgrade pip
 
 pip3 install cheerclaw

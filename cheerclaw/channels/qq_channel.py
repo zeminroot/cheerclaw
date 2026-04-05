@@ -28,26 +28,18 @@ def set_global_in_queue(queue: asyncio.Queue):
     global _global_in_queue
     _global_in_queue = queue
 
-# QQ Bot 
+# QQ Bot（可选依赖）
 QQ_AVAILABLE = False
-botpy = None
-Intents = None
-C2CMessage = None
-GroupMessage = None
-QQChannelClient = None
-
 try:
-    import botpy as _botpy
-    from botpy import Intents as _Intents
-    from botpy.message import C2CMessage as _C2CMessage, GroupMessage as _GroupMessage
-
-    botpy = _botpy
-    Intents = _Intents
-    C2CMessage = _C2CMessage
-    GroupMessage = _GroupMessage
+    import botpy
+    from botpy import Intents
+    from botpy.message import C2CMessage, GroupMessage
     QQ_AVAILABLE = True
+except ImportError:
+    botpy = Intents = C2CMessage = GroupMessage = None
 
-    class _QQChannelClient(botpy.Client):
+if QQ_AVAILABLE:
+    class QQChannelClient(botpy.Client):
         """
         QQ Bot 客户端（继承 botpy.Client）
         """
@@ -97,11 +89,8 @@ try:
             if self.global_in_queue:
                 await self.global_in_queue.put((channel_id, "qq", describe, content.strip()))
                 print(f"[QQ Channel] 收到消息 from {channel_id}: {content[:50]}")
-
-    QQChannelClient = _QQChannelClient
-
-except ImportError:
-    pass
+else:
+    QQChannelClient = None
 
 
 async def qq_channel(global_in_queue: asyncio.Queue = None, qq_config=None):

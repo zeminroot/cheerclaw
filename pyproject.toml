@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cheerclaw"
-version = "0.1.0"
+version = "0.1.8"
 description = "CheerClaw - 灵活的 AI Agent 框架，支持多通道交互"
 requires-python = ">=3.8"
 dependencies = [
@@ -19,7 +19,7 @@ dependencies = [
     "tiktoken==0.12.0",
     "websockets==15.0.1",
     "tavily-python==0.7.23",
-    "qq-botpy==1.2.1",
+    "qq-botpy==1.2.1"
 ]
 
 [project.scripts]
