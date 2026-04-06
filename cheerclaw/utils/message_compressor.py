@@ -35,7 +35,7 @@ def identify_conversation_boundaries(messages: list[dict]) -> list[int]:
 def compress_tools_in_message(msg: dict, max_len: int = 50) -> dict:
     """
     对单条消息进行工具压缩：
-    - assistant + tool_calls: 截断 arguments 到 max_len 字
+    - assistant + tool_calls: 替换 arguments 为压缩标记（保持JSON合法）
     - tool: 截断 content 到 max_len 字
     - 其他: 保持不变
 
@@ -55,8 +55,9 @@ def compress_tools_in_message(msg: dict, max_len: int = 50) -> dict:
             if "function" in tc_copy:
                 func_copy = dict(tc_copy["function"])
                 args = func_copy.get("arguments", "")
+                # 保持JSON格式合法且为对象格式，替换为压缩标记对象
                 if isinstance(args, str) and len(args) > max_len:
-                    func_copy["arguments"] = args[:max_len] + "..."
+                    func_copy["arguments"] = '{"_compressed_":true,"note":"content truncated"}'
                 tc_copy["function"] = func_copy
             tool_calls.append(tc_copy)
         msg_copy["tool_calls"] = tool_calls
