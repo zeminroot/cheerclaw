@@ -16,10 +16,11 @@
 ## 效果展示
 
 <video width="640" height="360" controls>
-
-  <source src="assets/videos/qq.mp4" type="video/mp4">
   <source src="assets/videos/cli.mp4" type="video/mp4">
+</video>
 
+<video width="640" height="360" controls>
+  <source src="assets/videos/qq.mp4" type="video/mp4">
 </video>
 
 
