@@ -33,7 +33,10 @@ pip3 install --upgrade pip
 
 pip3 install cheerclaw
 
-skills扩展：建议直接向cheerclaw表明功能需求，cheerclaw将自主搜索clawhub，自动下载安装
+skills扩展：
+1、建议直接向cheerclaw表明功能需求，cheerclaw将自主搜索clawhub，自动下载安装
+2、对于手动下载的skills，请询问cheerclaw应该放置的目录位置
+3、如需手动构建自己的skills，请告诉cheerclaw业务流程，cheerclaw将根据业务流程为您构建一个专属的skills
 ```
 
 ## 使用方法
