@@ -106,7 +106,7 @@ def cmd_online(args):
     print("=" * 50)
     print("🚀 CheerClaw Online Mode Started")
     print("=" * 50)
-    print(f"📁 Workspace: {RUNSPACE}")
+    print(f"📁 Runspace: {RUNSPACE}")
     print(f"⚙️  Config Dir: {CHEERCLAW_DIR}")
     print("🤖 QQ Bot 已就绪，等待消息...")
     print("-" * 50)
