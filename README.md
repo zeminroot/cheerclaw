@@ -14,23 +14,9 @@
 
 
 ## 效果展示
-## 效果展示
 
-<video width="640" muted autoplay loop playsinline>
-  <source src="https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043" type="video/mp4">
-</video>
-
-<video width="640" muted autoplay loop playsinline>
-  <source src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" type="video/mp4">
-</video>
-
-<!-- ![cli使用视频](https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043)
-![qq使用视频](https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c) -->
-
-<!-- <video src="https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043" width="640" />
-
-<video src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" width="640" /> -->
-
+![CLI 终端](assets/videos/_cli.gif)
+![QQ Bot 在线](assets/videos/_qq.gif)
 
 ## 安装
 
