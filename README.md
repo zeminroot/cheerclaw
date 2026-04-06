@@ -20,7 +20,7 @@
 </video>
 
 <video width="640" height="360" controls>
-  <source src="https://github.com/zeminroot/cheerclaw/blob/master/assets/videos/qq.mp4" type="video/mp4">
+  <source src="user-attachments/assets/e814e685-90aa-43a1-bfbb-9c85216a0fd9" type="video/mp4">
 </video>
 
 
