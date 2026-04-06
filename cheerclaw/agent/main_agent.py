@@ -32,6 +32,7 @@ from cheerclaw.utils.openai_client import create_openai_client
 from cheerclaw.utils.agent_helpers import generate_summary_from_tools, format_tool_confirm_message, check_tool_needs_confirm
 from cheerclaw.context.context_manager import ContextManager, load_memory_content
 from cheerclaw.context.compress2 import LLMContextCompressor
+from cheerclaw.utils.message_compressor import prepare_messages_for_llm
 
 class AgentApp:
 
@@ -266,14 +267,18 @@ class AgentApp:
             meta = self.context_manager.load_meta(channel_workspace)
             compress_history = meta.get("compress_history", [])
             compress_idx = compress_history[-1] if compress_history else 0
+            original_compress_idx = compress_idx  # 保存原始压缩点用于比较
 
             # 实时读取长期记忆并拼接到 system_prompt
             memory_content = load_memory_content(channel_workspace)
             full_system_prompt = system_prompt.format(memory_content=memory_content)
 
+            # 【修改】准备工具压缩后的历史用于检测和LLM调用
+            history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
+
             messages_for_check = [
                 {"role": "system", "content": full_system_prompt},
-                *local_history[compress_idx:],
+                *history_for_llm,
             ]
             stats = self.context_manager.get_context_stats(messages_for_check)
 
@@ -281,11 +286,14 @@ class AgentApp:
                 # 计算新压缩点：只保留安全预算一半的上下文
                 safe_budget = self.context_manager.get_safe_context_budget()
                 tokens_to_remove = stats["total_tokens"] - (safe_budget // 2)
-                new_compress_idx = self.context_manager.calculate_compress_point(
-                    messages=local_history,
-                    current_compress_idx=compress_idx,
+                # 【关键】基于工具压缩后的消息计算压缩点偏移量
+                new_compress_offset = self.context_manager.calculate_compress_point(
+                    messages=history_for_llm,
+                    current_compress_idx=0,
                     tokens_to_remove=tokens_to_remove,
                 )
+                # 转换回原始历史的索引
+                new_compress_idx = compress_idx + new_compress_offset
                 # 立即更新压缩点
                 compress_idx = new_compress_idx
                 compress_history.append(compress_idx)
@@ -307,10 +315,14 @@ class AgentApp:
 
 
             # ==========  2、调用大模型  ==========
-            # 构建发送给大模型的消息（system + 压缩点之后的历史）
+            # 【修改】如果压缩点被更新了，重新准备工具压缩后的历史
+            if compress_idx != original_compress_idx:
+                history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
+
+            # 构建发送给大模型的消息（使用工具压缩后的历史）
             messages = [
                 {"role": "system", "content": full_system_prompt},
-                *local_history[compress_idx:],
+                *history_for_llm,
             ]
             logger.debug(f"[_process_user_input] 第{iteration}轮准备调用LLM, 消息数: {len(messages)}")
             response = await self._call_llm(messages, tools=tools_schemas)
