@@ -15,9 +15,13 @@
 
 ## 效果展示
 
-<video src="https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043" width="640" />
+## 效果展示
+![效果演示1](https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043)
+![效果演示2](https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c)
 
-<video src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" width="640" />
+<!-- <video src="https://github.com/user-attachments/assets/e1749c35-7d92-4af5-a195-9d2bbc141043" width="640" />
+
+<video src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" width="640" /> -->
 
 
 ## 安装
