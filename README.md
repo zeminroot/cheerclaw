@@ -15,13 +15,13 @@
 
 ## 效果展示
 
-<video width="640" height="360" controls>
-  <source src="https://private-user-images.githubusercontent.com/152941399/573995081-e814e685-90aa-43a1-bfbb-9c85216a0fd9.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzU0NDg1MjksIm5iZiI6MTc3NTQ0ODIyOSwicGF0aCI6Ii8xNTI5NDEzOTkvNTczOTk1MDgxLWU4MTRlNjg1LTkwYWEtNDNhMS1iZmJiLTljODUyMTZhMGZkOS5tcDQ_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNDA2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDQwNlQwNDAzNDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT04NjQzMGYwYmM2NWYxNzJlOGY2MTlmYTM5ZWFjMGNkM2JmNmI5NzFiNjgzMmY0MjYxZmYzMWFiMGExMmNjMjMzJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.oVzYYtl7SVLLY7QWTszOhMO2-HJq0RGroygWxBXLiQo" type="video/mp4">
-</video>
+### 演示 1：功能演示
 
-<video width="640" height="360" controls>
-  <source src="https://private-user-images.githubusercontent.com/152941399/573995081-e814e685-90aa-43a1-bfbb-9c85216a0fd9.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzU0NDg1MjksIm5iZiI6MTc3NTQ0ODIyOSwicGF0aCI6Ii8xNTI5NDEzOTkvNTczOTk1MDgxLWU4MTRlNjg1LTkwYWEtNDNhMS1iZmJiLTljODUyMTZhMGZkOS5tcDQ_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwNDA2JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDQwNlQwNDAzNDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT04NjQzMGYwYmM2NWYxNzJlOGY2MTlmYTM5ZWFjMGNkM2JmNmI5NzFiNjgzMmY0MjYxZmYzMWFiMGExMmNjMjMzJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.oVzYYtl7SVLLY7QWTszOhMO2-HJq0RGroygWxBXLiQo" type="video/mp4">
-</video>
+<video src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" width="640" />
+
+### 演示 2：功能演示
+
+<video src="https://github.com/user-attachments/assets/26550485-52f7-43e2-a340-10229895763c" width="640" />
 
 
 ## 安装
