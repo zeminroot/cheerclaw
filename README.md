@@ -85,6 +85,9 @@ cheerclaw online
   "qq": {
     "app_id": "your-qq-app-id",
     "secret": "your-qq-secret"
+  },
+  "tavily": {
+    "api_key": "tavily-apikey"
   }
 }
 ```
