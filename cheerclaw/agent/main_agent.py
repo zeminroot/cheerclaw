@@ -387,11 +387,10 @@ class AgentApp:
             memory_content = load_memory_content(channel_workspace)
             full_system_prompt = system_prompt.format(memory_content=memory_content)
             # 使用工具压缩后的消息生成总结
-            if 'history_for_llm' not in locals():
-                history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
+            history_for_summary = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
             messages_for_summary = [
                 {"role": "system", "content": full_system_prompt},
-                *history_for_llm,
+                *history_for_summary,
             ]
             final_reply = await generate_summary_from_tools(
                 messages=messages_for_summary,
