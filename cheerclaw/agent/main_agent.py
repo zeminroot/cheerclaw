@@ -246,7 +246,7 @@ class AgentApp:
         # 发送思考中消息
         await output_q.put((channel_id, "[思考中...]"))
 
-        # 添加用户消息到历史（带时间戳）
+        # 添加用户消息到历史
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         user_input_with_timestamp = f"[{timestamp}] {user_input}"
         local_history.append({"role": "user", "content": user_input_with_timestamp})
@@ -263,7 +263,7 @@ class AgentApp:
             logger.debug(f"Channel {channel_id} 当前一条用户提问的第 {iteration} 轮 llm 循环")
 
             # ==========  1、每次循环前检测压缩点（工具调用会增加tokens） ==========
-            # 从 meta 读取压缩历史（每次循环都获取最新的）
+            # 从 meta 读取压缩历史，每次循环都获取最新的
             meta = self.context_manager.load_meta(channel_workspace)
             compress_history = meta.get("compress_history", [])
             compress_idx = compress_history[-1] if compress_history else 0
@@ -273,7 +273,7 @@ class AgentApp:
             memory_content = load_memory_content(channel_workspace)
             full_system_prompt = system_prompt.format(memory_content=memory_content)
 
-            # 【修改】准备工具压缩后的历史用于检测和LLM调用
+            # 准备工具压缩后的历史用于检测和LLM调用
             history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
 
             messages_for_check = [
@@ -286,7 +286,7 @@ class AgentApp:
                 # 计算新压缩点：只保留安全预算一半的上下文
                 safe_budget = self.context_manager.get_safe_context_budget()
                 tokens_to_remove = stats["total_tokens"] - (safe_budget // 2)
-                # 【关键】基于工具压缩后的消息计算压缩点偏移量
+                # 基于工具压缩后的消息计算压缩点偏移量
                 new_compress_offset = self.context_manager.calculate_compress_point(
                     messages=history_for_llm,
                     current_compress_idx=0,
@@ -301,12 +301,13 @@ class AgentApp:
                 self.context_manager.save_meta(channel_workspace, meta)
                 await output_q.put((channel_id, f"🔄 压缩点已更新, 压缩对话至索引 {compress_idx}"))
 
-                # 同时触发后台压缩协程，传入已计算的压缩点
+                # 同时触发后台压缩协程，传入压缩区间 [original_compress_idx, new_compress_idx]
                 asyncio.create_task(
                     self._compress_context_background(
                         channel_id=channel_id,
                         local_history=local_history,
                         output_q=output_q,
+                        last_compress_idx=original_compress_idx,
                         new_compress_idx=new_compress_idx,
                         system_prompt=system_prompt,
                         channel_workspace=channel_workspace,
@@ -315,7 +316,7 @@ class AgentApp:
 
 
             # ==========  2、调用大模型  ==========
-            # 【修改】如果压缩点被更新了，重新准备工具压缩后的历史
+            # 如果压缩点被更新了，重新准备工具压缩后的历史
             if compress_idx != original_compress_idx:
                 history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
 
@@ -383,12 +384,14 @@ class AgentApp:
             # 超过工具轮次上限还未得到助手回复，基于工具调用结果生成总结
             await output_q.put((channel_id, "🔄 [主Agent]达到最大迭代次数，正在生成任务总结..."))
             # 构建包含 system message 和当前压缩点之后消息 以命中 KV Cache
-            # 实时读取长期记忆
             memory_content = load_memory_content(channel_workspace)
             full_system_prompt = system_prompt.format(memory_content=memory_content)
+            # 使用工具压缩后的消息生成总结
+            if 'history_for_llm' not in locals():
+                history_for_llm = prepare_messages_for_llm(local_history[compress_idx:], keep_recent_rounds=3)
             messages_for_summary = [
                 {"role": "system", "content": full_system_prompt},
-                *local_history[compress_idx:],
+                *history_for_llm,
             ]
             final_reply = await generate_summary_from_tools(
                 messages=messages_for_summary,
@@ -414,6 +417,7 @@ class AgentApp:
         channel_id: str,
         local_history: list[dict],
         output_q: asyncio.Queue,
+        last_compress_idx: int,
         new_compress_idx: int,
         system_prompt: str,
         channel_workspace: Path,
@@ -423,64 +427,40 @@ class AgentApp:
         channel_id: 通道ID
         local_history: 当前协程的对话历史
         output_q: 输出队列
-        new_compress_idx: 新的压缩点索引
+        last_compress_idx: 上一个压缩点（作为本次压缩区间起点）
+        new_compress_idx: 新的压缩点（作为本次压缩区间终点）
         system_prompt: 系统提示词
         channel_workspace: 当前 channel 的 workspace 路径
         """
         try:
             await output_q.put((channel_id, "🔄 正在压缩对话历史..."))
 
-            # 从meta读取已更新的压缩点
-            meta = self.context_manager.load_meta(channel_workspace)
-            compress_history = meta.get("compress_history", [])
-            if not compress_history:
-                await output_q.put((channel_id, "✅ 压缩点为空，跳过压缩"))
+            # 简单的有效性检查
+            if new_compress_idx <= last_compress_idx:
+                await output_q.put((channel_id, "✅ 压缩区间无效，跳过"))
                 return
 
-            current_compress_idx = compress_history[-1]
-            last_compress_idx = compress_history[-2] if len(compress_history) >= 2 else 0
-
-            # 检查是否有足够的消息需要压缩
-            if current_compress_idx <= last_compress_idx:
-                # 移除无效的压缩点
-                if compress_history[-1] == new_compress_idx:
-                    compress_history.pop()
-                    meta["compress_history"] = compress_history
-                    self.context_manager.save_meta(channel_workspace, meta)
-                await output_q.put((channel_id, "✅ 压缩区间无效，已回滚压缩点"))
-                return
-
-            # 验证传入的参数与meta一致
-            if current_compress_idx != new_compress_idx:
-                logger.debug(f"[压缩点不一致: meta={current_compress_idx}, param={new_compress_idx}")
-
+            # 直接使用传入的参数执行压缩
             compressed_content = await self.compressor.compress_from_point(
                 channel_workspace=channel_workspace,
                 local_history=local_history,
                 last_compress_idx=last_compress_idx,
-                new_compress_idx=current_compress_idx,
+                new_compress_idx=new_compress_idx,
             )
 
-            # 更新meta的压缩时间
-            meta["compressed_at"] = asyncio.get_event_loop().time()
-            self.context_manager.save_meta(channel_workspace, meta)
-
-            # 保存完整历史到文件（覆盖写入）
-            self.context_manager.save_history(channel_workspace, local_history)
-
-            # 获取压缩后的统计信息（从新的压缩点开始）
+            # 使用传入的参数计算统计信息
             messages_after = [
                 {"role": "system", "content": system_prompt},
-                *local_history[current_compress_idx:],
+                *local_history[new_compress_idx:],
             ]
             stats_after = self.context_manager.get_context_stats(messages_after)
 
             # 发送压缩完成通知
-            removed_count = current_compress_idx - last_compress_idx
+            removed_count = new_compress_idx - last_compress_idx
             await output_q.put((
                 channel_id,
                 f"✅ 历史压缩完成："
-                f"移除 {removed_count} 条消息（索引 {last_compress_idx} → {current_compress_idx}），"
+                f"移除 {removed_count} 条消息（索引 {last_compress_idx} → {new_compress_idx}），"
                 f"当前 {stats_after['total_tokens']} tokens"
             ))
 

@@ -16,7 +16,7 @@ CHANNEL_QQ_SEND_QUEUE = asyncio.Queue()
 # 全局输入队列引用（由主模块注入）
 _global_in_queue = None
 
-# Channel 标识（用于注册到 ChannelInfoManager）
+# Channel 标识（注册到 ChannelInfoManager）
 CHANNEL_SOURCE = "qq"
 CHANNEL_DESCRIBE = "QQ机器人通道"
 
@@ -28,7 +28,7 @@ def set_global_in_queue(queue: asyncio.Queue):
     global _global_in_queue
     _global_in_queue = queue
 
-# QQ Bot（可选依赖）
+# QQ Bot
 QQ_AVAILABLE = False
 try:
     import botpy
@@ -177,7 +177,7 @@ async def _qq_sender(client, chat_type_cache: dict):
             if channel_id in chat_type_cache:
                 is_group = chat_type_cache[channel_id]
             else:
-                # 启发式推断：长度>30通常是群组
+                # 长度>30通常是群组
                 is_group = len(chat_id) > 30
                 print(f"[QQ Channel] 未找到缓存，推断 {channel_id} 为 {'群组' if is_group else '私聊'}")
 

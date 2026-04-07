@@ -58,7 +58,7 @@ async def cron_scheduler_task(
 
     cron_manager = CronTaskManager(clawspace=_global_cheerclaw_dir)
 
-    # 记录已触发过的任务（避免同一分钟重复触发）格式: {task_filepath: last_triggered_minute}
+    # 记录已触发过的任务，避免同一分钟重复触发，格式: {task_filepath: last_triggered_minute}
     triggered_tasks: Dict[str, str] = {}
 
     while True:
