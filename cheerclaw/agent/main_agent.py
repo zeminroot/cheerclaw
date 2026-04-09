@@ -39,8 +39,8 @@ class AgentApp:
     def __init__(self, config: Optional[Config] = None, runspace: Path | str | None = None, channel_info_manager: Optional[ChannelInfoManager] = None):
         """初始化 AgentApp
         config: 配置对象
-        runspace: 运行路径（程序启动时的当前工作目录）
-        channel_info_manager: Channel 信息管理器
+        runspace: 运行路径程序启动时的运行目录
+        channel_info_manager: Channel信息管理器
         """
         self.runspace = Path(runspace) if runspace else Path.cwd()
         self.config = config or load_config()
