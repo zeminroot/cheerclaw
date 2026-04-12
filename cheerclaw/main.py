@@ -24,6 +24,7 @@ from cheerclaw.utils.channel_info import ChannelInfoManager
 from cheerclaw.channels import (
     CLI_SEND_QUEUE,
     CHANNEL_QQ_SEND_QUEUE,
+    CHANNEL_FEISHU_SEND_QUEUE,
 )
 
 CHEERCLAW_DIR = Path.home() / ".cheerclaw"
@@ -89,7 +90,8 @@ class MainCheerClaw:
 
 
 async def dispatcher(cheer_claw: MainCheerClaw):
-    """消息分发器
+    """
+    消息分发器
     从 GLOBAL_IN_QUEUE 接收消息，根据 channel_id 路由到对应的私有输入队列
     消息格式: (channel_id, channel_source, channel_describe, message)
     """
@@ -110,6 +112,7 @@ async def channel_output_task():
     监听全局输出队列，根据 channel_id 进行不同处理
     - cli (CLI): 推送到 CLI_SEND_QUEUE，由 cli_output_sender 处理
     - qq_* (QQ): 推送到 CHANNEL_QQ_SEND_QUEUE，由 qq_channel 处理
+    - feishu_* (飞书): 推送到 CHANNEL_FEISHU_SEND_QUEUE，由 feishu_channel 处理
     消息格式: (channel_id, msg)
     """
     while True:
@@ -120,6 +123,8 @@ async def channel_output_task():
                 await CLI_SEND_QUEUE.put(msg)
             elif channel_id.startswith("qq_"):
                 await CHANNEL_QQ_SEND_QUEUE.put((channel_id, msg))
+            elif channel_id.startswith("feishu_"):
+                await CHANNEL_FEISHU_SEND_QUEUE.put((channel_id, msg))
             else:
                 logger.info(f"[未知Channel {channel_id}] {msg}")
 

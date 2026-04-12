@@ -10,7 +10,7 @@
 - **上下文管理**：工具压缩+内容压缩，支持无限扩增的上下文窗口
 - **三层记忆系统**：长期记忆 (MEMORY.md) + 对话压缩 (HISTORY.md) + 原始日志(origion.jsonl)
 - **主动记忆召回**：react渐进式记忆检索
-- **多通道交互**：支持 CLI 终端、QQ Bot、定时任务执行
+- **多通道交互**：支持 CLI 终端、QQ Bot、飞书 Bot、定时任务执行
 
 
 ## 效果展示
@@ -51,21 +51,27 @@ cheerclaw local
 
 ### 在线/后台模式
 
-启动后台运行模式（启动 QQ Bot 模式）：
+启动后台运行模式（启动 QQ Bot + 飞书 Bot）：
 
 ```bash
 cheerclaw online
 ```
 
+> `online` 模式会根据 `config.json` 中的配置自动启动对应的 Bot：
+> - 配置了 `qq.app_id` 则启动 QQ Bot
+> - 配置了 `feishu.app_id` 则启动飞书 Bot
+
 ## 配置
 
-当前支持qwen系列模型；tavily搜索；在线通信支持qq
+当前支持qwen系列模型；tavily搜索；在线通信支持qq、飞书
 
 [qwen模型订阅地址](https://bailian.console.aliyun.com/cn-beijing?spm=5176.12818093_47.resourceCenter.1.3be916d0bQ42Yp&tab=home#/home)
 
 [tavily搜索免费apikey注册地址](https://www.tavily.com/)
 
 [qq bot app_id和secret创建地址](https://q.qq.com/#/)
+
+[飞书 bot 创建指南](https://open.feishu.cn/document/home/index)
 
 首次运行后，默认会在 `~/.cheerclaw/` 目录下创建配置文件 `config.json`。
 
@@ -86,10 +92,63 @@ cheerclaw online
     "app_id": "your-qq-app-id",
     "secret": "your-qq-secret"
   },
+  "feishu": {
+    "app_id": "cli_xxxxxx",
+    "app_secret": "xxxxxxxxxx"
+  },
   "tavily": {
     "api_key": "tavily-apikey"
   }
 }
 ```
+
+## 飞书 Bot 配置指南
+
+### 1. 创建飞书应用
+
+1. 访问 [飞书开放平台](https://open.feishu.cn/)
+2. 点击"创建企业自建应用"
+3. 填写应用名称Cheerclaw和描述
+4. 进入应用管理后台
+
+### 2. 获取凭证
+
+在"凭证与基础信息"页面获取：
+- **App ID**: 应用唯一标识（格式如 `cli_xxxxxx`）
+- **App Secret**: 应用密钥
+
+### 3. 开启机器人能力
+
+1. 进入"机器人"菜单
+2. 打开"启用机器人"开关
+
+### 4. 配置权限
+
+在"权限管理"中开通以下权限：
+- `im:chat:readonly` - 获取群组信息
+- `im:message:send_as_bot` - 以机器人身份发送消息
+- `im:message:send` - 发送消息
+- `im:message.group_at_msg:readonly` - 获取群组中用户@机器人消息
+- `im:message.p2p_msg:readonly` - 读取用户发给机器人的单聊消息
+
+
+### 5. 订阅事件
+
+1. 进入"事件订阅"菜单
+2. 打开"启用事件订阅"开关
+3. 在"订阅方式"中选择 **使用长连接（WebSocket）**
+4. 在"订阅事件"中添加：`im.message.receive_v1`（接收消息）
+
+### 6. 发布应用
+
+1. 进入"版本管理与发布"
+2. 点击"创建版本"
+3. 填写版本信息后发布
+
+### 7. 使用机器人
+
+将机器人添加到工作群或私聊：
+- **私聊**: 在飞书中搜索机器人名称，直接对话
+- **群聊**: 在群设置中添加机器人
 
 

@@ -34,8 +34,6 @@ def get_config_path() -> Path:
 def create_default_config() -> Config:
     """
     创建默认配置
-    包含: 空的 API Key(需用户填写), 默认模型, 默认 Agent 名称
-    extra_body: 额外的请求参数，可用于启用思考模式等
     """
     return Config(
         provider=ProviderConfig(
@@ -53,9 +51,6 @@ def create_default_config() -> Config:
 def load_config(config_path: Optional[Path] = None) -> Config:
     """
     加载配置文件
-    如果文件不存在，创建默认配置并保存
-    config_path: 配置文件路径
-    返回: 配置对象
     """
     path = config_path or get_config_path()
 
@@ -111,7 +106,7 @@ def validate_config_for_mode(config: Config, mode: str) -> tuple[bool, list[str]
     验证配置是否满足指定模式的要求
     config: 配置对象
     mode: 启动模式 "local" 或 "online"
-    返回: (是否完整, 缺失的字段列表)
+    返回: 是否完整, 缺失的字段列表
     """
     missing = []
 
@@ -123,20 +118,30 @@ def validate_config_for_mode(config: Config, mode: str) -> tuple[bool, list[str]
     if not config.provider.model or config.provider.model.strip() == "":
         missing.append("model")
 
-    # online 模式额外检查 QQ 配置
+    # online 模式检查至少配置一个 Channel QQ或飞书
     if mode == "online":
-        if not config.qq.app_id or config.qq.app_id.strip() == "":
-            missing.append("qq.app_id")
-        if not config.qq.secret or config.qq.secret.strip() == "":
-            missing.append("qq.secret")
+        # 检查 QQ 配置是否完整
+        has_qq = bool(
+            config.qq.app_id and config.qq.app_id.strip() and
+            config.qq.secret and config.qq.secret.strip()
+        )
+
+        # 检查飞书配置是否完整
+        has_feishu = bool(
+            config.feishu.app_id and config.feishu.app_id.strip() and
+            config.feishu.app_secret and config.feishu.app_secret.strip()
+        )
+
+        # 至少需要一个 Channel
+        if not has_qq and not has_feishu:
+            missing.append("channel (qq 或 feishu)")
 
     return len(missing) == 0, missing
 
 
 def interactive_config_init(mode: str, config: Config, missing_fields: list[str]) -> Config:
     """
-    交互式配置初始化
-    只让用户填写缺失的必填字段，保留已有配置
+    交互式配置初始化。只让用户填写缺失的必填字段，保留已有配置
     mode: 启动模式 "local" 或 "online"
     config: 当前配置对象
     missing_fields: 缺失的字段列表
@@ -172,24 +177,52 @@ def interactive_config_init(mode: str, config: Config, missing_fields: list[str]
         model = input(f"请输入模型名称 [默认: {default_model}]: ").strip()
         config.provider.model = model if model else default_model
 
-    # QQ 配置
-    if "qq.app_id" in missing_fields or "qq.secret" in missing_fields:
-        print("\n--- QQ Bot 配置 ---")
-        if "qq.app_id" in missing_fields:
-            app_id = input("请输入 QQ App ID: ").strip()
-            while not app_id:
-                print("❌ QQ App ID 不能为空")
-                app_id = input("请输入 QQ App ID: ").strip()
-            config.qq.app_id = app_id
+    # Channel 配置 (QQ 或 飞书)
+    if "channel (qq 或 feishu)" in missing_fields:
+        print("\n" + "=" * 50)
+        print("📢 online 模式需要至少配置一个消息通道（QQ 或 飞书）")
+        print("=" * 50)
 
-        if "qq.secret" in missing_fields:
-            secret = input("请输入 QQ Secret: ").strip()
-            while not secret:
-                print("❌ QQ Secret 不能为空")
-                secret = input("请输入 QQ Secret: ").strip()
-            config.qq.secret = secret
+        # QQ 配置
+        print("\n--- QQ Bot 配置（跳过按回车）---")
+        qq_app_id = input("请输入 QQ App ID: ").strip()
+        if qq_app_id:
+            config.qq.app_id = qq_app_id
+            qq_secret = input("请输入 QQ Secret: ").strip()
+            if qq_secret:
+                config.qq.secret = qq_secret
+        else:
+            print("  ⏭️  已跳过 QQ 配置")
 
-    # Tavily API Key
+        # 飞书配置
+        print("\n--- 飞书 Bot 配置（跳过按回车）---")
+        feishu_app_id = input("请输入飞书 App ID (cli_xxxxxx): ").strip()
+        if feishu_app_id:
+            config.feishu.app_id = feishu_app_id
+            feishu_secret = input("请输入飞书 App Secret: ").strip()
+            if feishu_secret:
+                config.feishu.app_secret = feishu_secret
+        else:
+            print("  ⏭️  已跳过飞书配置")
+
+        # 检查至少配置了一个 Channel
+        has_qq = bool(config.qq.app_id and config.qq.secret)
+        has_feishu = bool(config.feishu.app_id and config.feishu.app_secret)
+
+        if not has_qq and not has_feishu:
+            print("\n" + "⚠️ " * 20)
+            print("错误：至少需要一个 Channel 配置（QQ 或 飞书）")
+            print("⚠️ " * 20)
+            print("\n请重新配置...")
+            return interactive_config_init(mode, config, ["channel (qq 或 feishu)"])
+        else:
+            print("\n✅ Channel 配置完成:")
+            if has_qq:
+                print("  • QQ Bot 已配置")
+            if has_feishu:
+                print("  • 飞书 Bot 已配置")
+
+    # Tavily配置
     print("\n--- Tavily 搜索配置 ---")
     if not config.tavily.api_key:
         tavily_key = input("请输入 Tavily API Key (直接回车跳过，默认为空): ").strip()

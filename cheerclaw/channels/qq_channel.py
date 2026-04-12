@@ -10,13 +10,13 @@ qq bot通道
 
 import asyncio
 
-# QQ Channel 专用的发送队列（接收输出消息，发送给 QQ）
+# QQ Channel 专用的发送队列，接收输出消息，发送给 QQ
 CHANNEL_QQ_SEND_QUEUE = asyncio.Queue()
 
-# 全局输入队列引用（由主模块注入）
+# 全局输入队列引用，由主模块注入
 _global_in_queue = None
 
-# Channel 标识（注册到 ChannelInfoManager）
+# Channel 标识，注册到 ChannelInfoManager
 CHANNEL_SOURCE = "qq"
 CHANNEL_DESCRIBE = "QQ机器人通道"
 
@@ -40,9 +40,6 @@ except ImportError:
 
 if QQ_AVAILABLE:
     class QQChannelClient(botpy.Client):
-        """
-        QQ Bot 客户端（继承 botpy.Client）
-        """
 
         def __init__(self, global_in_queue: asyncio.Queue, chat_type_cache: dict):
             intents = Intents(public_messages=True, direct_message=True)
@@ -144,7 +141,7 @@ async def qq_channel(global_in_queue: asyncio.Queue = None, qq_config=None):
 
 async def _qq_bot_runner(client, app_id: str, secret: str):
     """
-    运行 QQ Bot 连接（自动重连）
+    运行 QQ Bot 连接
     """
     while True:
         try:
@@ -172,8 +169,7 @@ async def _qq_sender(client, chat_type_cache: dict):
 
             chat_id = channel_id[3:]  # 去掉 "qq_" 前缀
 
-            # 从缓存获取消息类型
-            # QQ群组的group_openid通常比用户openid长
+            # 从缓存获取消息类型。QQ群组的group_openid通常比用户openid长
             if channel_id in chat_type_cache:
                 is_group = chat_type_cache[channel_id]
             else:

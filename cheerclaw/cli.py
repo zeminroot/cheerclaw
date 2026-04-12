@@ -7,7 +7,7 @@
 CheerClaw 命令行入口
 两种启动模式:
 - cheerclaw local: 本地 CLI 交互模式
-- cheerclaw online: 在线/后台运行模式（ QQ 交互）
+- cheerclaw online: 在线/后台运行模式（QQ + 飞书）
 '''
 
 import argparse
@@ -30,6 +30,7 @@ from cheerclaw.channels import (
     cli_output_sender,
     cron_scheduler_task,
     qq_channel,
+    feishu_channel,
 )
 from cheerclaw.show_style.welcome import print_welcome_box
 
@@ -37,9 +38,6 @@ from cheerclaw.show_style.welcome import print_welcome_box
 def cmd_local(args):
     """
     本地 CLI 模式启动
-    - 启动 CLI Channel（终端交互）
-    - 不启动 QQ Channel
-    - 显示欢迎界面
     """
     from cheerclaw.config.config_loader import (
         load_config,
@@ -82,10 +80,7 @@ def cmd_local(args):
 
 def cmd_online(args):
     """
-    在线/后台模式启动（只与 QQ 交互）
-    - 不启动 CLI Channel
-    - 启动 QQ Channel（在线交互）
-    - 输出启动标志后持续后台运行
+    在线/后台模式启动（支持 QQ 和飞书交互）
     """
     from cheerclaw.config.config_loader import (
         load_config,
@@ -102,27 +97,45 @@ def cmd_online(args):
         print(f"缺少关键配置项: {', '.join(missing)}，请填写配置信息")
         config = interactive_config_init("online", config, missing)
 
-    # 简化版启动标志
     print("=" * 50)
     print("🚀 CheerClaw Online Mode Started")
     print("=" * 50)
     print(f"📁 Runspace: {RUNSPACE}")
     print(f"⚙️  Config Dir: {CHEERCLAW_DIR}")
-    print("🤖 QQ Bot 已就绪，等待消息...")
+
+    # 检查各 Channel 配置状态
+    has_qq = hasattr(config, 'qq') and config.qq.app_id
+    has_feishu = hasattr(config, 'feishu') and config.feishu.app_id
+
+    if has_qq:
+        print("QQ Bot 已配置")
+    if has_feishu:
+        print("飞书 Bot 已配置")
+
+    if not has_qq and not has_feishu:
+        print("⚠️  警告: 未配置 QQ 或飞书，online 模式将不启动任何消息通道")
+
     print("-" * 50)
 
     async def run_online():
         cheer_claw = MainCheerClaw()
 
-        # 构建要启动的协程列表（只启动 QQ，不启动 CLI）
+        # 构建要启动的协程列表
         coroutines = [
             dispatcher(cheer_claw),
             channel_output_task(),
             cron_scheduler_task(GLOBAL_IN_QUEUE, CHEERCLAW_DIR),
-            qq_channel(GLOBAL_IN_QUEUE, cheer_claw.config.qq),
         ]
 
-        logger.info("[Main] QQ Channel 已启动")
+        # 根据配置启动 QQ Channel
+        if has_qq:
+            coroutines.append(qq_channel(GLOBAL_IN_QUEUE, cheer_claw.config.qq))
+            logger.info("[Main] QQ Channel 已启动")
+
+        # 根据配置启动飞书 Channel
+        if has_feishu:
+            coroutines.append(feishu_channel(GLOBAL_IN_QUEUE, cheer_claw.config.feishu))
+            logger.info("[Main] Feishu Channel 已启动")
 
         # 启动所有协程
         await asyncio.gather(*coroutines)
@@ -144,8 +157,8 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  cheerclaw local         # 启动本地 CLI 交互模式
-  cheerclaw online        # 启动在线/后台模式（只与 QQ 交互）
+cheerclaw local         # 启动本地 CLI 交互模式
+cheerclaw online        # 启动在线/后台模式（QQ + 飞书）
         """
     )
 
@@ -161,7 +174,7 @@ def main():
     # online 子命令
     online_parser = subparsers.add_parser(
         "online",
-        help="在线/后台运行模式（只与 QQ 交互）"
+        help="在线/后台运行模式（QQ + 飞书）"
     )
     online_parser.set_defaults(func=cmd_online)
 
